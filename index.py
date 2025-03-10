@@ -16,7 +16,7 @@ st.set_page_config(
 # 读取数据函数
 @st.cache_data
 def load_data():
-    file_path = Path("static/data/jd_data/processed_完整数据.xlsx")
+    file_path = Path("data/processed_完整数据.xlsx")
     df = pd.read_excel(file_path)
     df['爬取时间'] = pd.to_datetime(df['爬取时间'])
     return df
