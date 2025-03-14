@@ -20,24 +20,24 @@ def show_overview(df):
     # 价格监控告警区域
     st.header("📊 价格监控告警")
     
-    # 计算价格变化最大的商品
-    latest_time = df['爬取时间'].max()
-    price_changes = df.groupby('标题')['清洗价格'].agg(['min', 'max'])
-    price_changes['变化幅度'] = price_changes['max'] - price_changes['min']
-    top_changes = price_changes.nlargest(5, '变化幅度')
-    
+    # 价格变化表格（新增在数据大屏部分）
     st.subheader("价格变化最大的商品TOP5")
-    for idx, row in top_changes.iterrows():
-        st.markdown(f"""
-        <div style='background-color: #f0f2f6; padding: 10px; border-radius: 5px; margin: 5px 0;'>
-            <h4 style='color: #1f77b4;'>📺 {idx[:30]}...</h4>
-            <p>价格区间: ¥{row['min']:.2f} - ¥{row['max']:.2f}</p>
-            <p style='color: #ff4b4b;'>变化幅度: ¥{row['变化幅度']:.2f}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # 数据可视化大屏
-    st.header("📈 数据可视化大屏")
+    price_changes = df.groupby('标题').agg(
+        最新价格=('清洗价格', 'last'),
+        最新时间=('爬取时间', 'max'),
+        价格变化=('清洗价格', lambda x: round((x.iloc[-1] - x.iloc[0])/x.iloc[0]*100, 2))
+    ).reset_index().sort_values('价格变化', ascending=False).head(5)
+
+    st.dataframe(
+        price_changes[['标题', '价格变化', '最新价格', '最新时间']],
+        column_config={
+            "标题": "商品名称",
+            "价格变化": st.column_config.NumberColumn(format="%.2f%%"),
+            "最新价格": st.column_config.NumberColumn(format="¥%.0f"),
+            "最新时间": "最后更新时间"
+        },
+        use_container_width=True
+    )
     
     # 数据概要行
     st.subheader("数据概要")
@@ -156,6 +156,29 @@ def show_overview(df):
     wordcloud_image = generate_wordcloud(words)
     st.image(wordcloud_image)
     
+    # 添加标题词云生成函数
+    def generate_title_wordcloud(text):  # 新增缺失的函数定义
+        return generate_wordcloud(text)  # 复用已有词云生成逻辑
+    
+    # 价格变化表格（调整到词云前）
+    st.subheader("价格变化最大的商品TOP5")
+    price_changes = df.groupby('标题').agg(
+        最新价格=('清洗价格', 'last'),
+        最新时间=('爬取时间', 'max'),
+        价格变化=('清洗价格', lambda x: round((x.iloc[-1] - x.iloc[0])/x.iloc[0]*100, 2))
+    ).reset_index().sort_values('价格变化', ascending=False).head(5)
+
+    st.dataframe(
+        price_changes[['标题', '价格变化', '最新价格', '最新时间']],
+        column_config={
+            "标题": "商品名称",
+            "价格变化": st.column_config.NumberColumn(format="%.2f%%"),
+            "最新价格": st.column_config.NumberColumn(format="¥%.0f"),
+            "最新时间": "最后更新时间"
+        },
+        use_container_width=True
+    )
+    
     # 标题词云分析
     st.subheader("商品标题词频分析")
     
@@ -209,3 +232,28 @@ def show_overview(df):
     """, unsafe_allow_html=True)
     
     st.image(title_wordcloud_image) 
+    
+    # 移除核心卖点词云分析部分的代码
+    # 移除商品标题词频分析部分的代码
+    # 价格变化表格（调整到合适位置）
+    st.subheader("价格变化最大的商品TOP5")
+    st.markdown("### 字段解释说明：")
+    st.markdown("- **商品名称**：商品的标题。")
+    st.markdown("- **价格变化**：商品的最新价格与初始价格的差值。")
+    st.markdown("- **最新价格**：商品的最新清洗价格。")
+    st.markdown("- **爬取时间**：该商品的最新价格在表中对应的最新爬取时间。")
+    price_changes = df.groupby('标题').agg(
+        最新价格=('清洗价格', 'last'),
+        最新时间=('爬取时间', 'max'),
+        价格变化=('清洗价格', lambda x: x.iloc[-1] - x.iloc[0])
+    ).reset_index().sort_values('价格变化', ascending=False).head(5)
+    st.dataframe(
+        price_changes[['标题', '价格变化', '最新价格', '最新时间']],
+        column_config={
+            "标题": "商品名称",
+            "价格变化": st.column_config.NumberColumn(format="¥%.0f"),
+            "最新价格": st.column_config.NumberColumn(format="¥%.0f"),
+            "最新时间": "爬取时间"
+        },
+        use_container_width=True
+    )

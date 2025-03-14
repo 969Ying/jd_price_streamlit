@@ -43,9 +43,31 @@ def show_price_analysis(df):
                     title="尺寸-价格-品牌关系图")
     st.plotly_chart(fig, use_container_width=True)
     
+    # 价格变化TOP5表格
+    st.subheader('价格变化最大的商品TOP5')
+    
+    # 计算价格变化
+    price_changes = df.groupby('标题').agg(
+        最新价格=('清洗价格', 'last'),
+        最新时间=('爬取时间', 'max'),
+        价格变化=('清洗价格', lambda x: round((x.iloc[-1] - x.iloc[0])/x.iloc[0]*100, 2))
+    ).reset_index().sort_values('价格变化', ascending=False).head(5)
+
+    # 展示表格
+    st.dataframe(
+        price_changes[['标题', '价格变化', '最新价格', '最新时间']],
+        column_config={
+            "标题": "商品名称",
+            "价格变化": st.column_config.NumberColumn(format="%.2f%%"),
+            "最新价格": st.column_config.NumberColumn(format="¥%.0f"),
+            "最新时间": "最后更新时间"
+        },
+        use_container_width=True
+    )
+    
     # 价格分布直方图
     fig = px.histogram(df, x="清洗价格", 
                       nbins=50,
                       title="价格分布直方图",
                       labels={"清洗价格": "价格", "count": "数量"})
-    st.plotly_chart(fig, use_container_width=True) 
+    st.plotly_chart(fig, use_container_width=True)
