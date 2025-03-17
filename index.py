@@ -3,8 +3,7 @@ import pandas as pd
 from pathlib import Path
 from pages.overview import show_overview
 from pages.data_query import show_data_query
-from pages.price_analysis import show_price_analysis
-from pages.brand_analysis import show_brand_analysis
+
 
 # 设置页面配置
 st.set_page_config(
@@ -16,7 +15,7 @@ st.set_page_config(
 # 读取数据函数
 @st.cache_data
 def load_data():
-    file_path = Path("data/processed_完整数据.xlsx")
+    file_path = Path("data/20250304-0313已清洗.xlsx")
     df = pd.read_excel(file_path)
     df['爬取时间'] = pd.to_datetime(df['爬取时间'])
     return df
@@ -27,7 +26,7 @@ def main():
     # 侧边栏导航
     page = st.sidebar.selectbox(
         "选择页面",
-        ["数据概览", "数据查询", "价格分析", "品牌分析"]
+        ["数据概览", "数据查询"]
     )
     
     # 页面路由
@@ -35,10 +34,7 @@ def main():
         show_overview(df)
     elif page == "数据查询":
         show_data_query(df)
-    elif page == "价格分析":
-        show_price_analysis(df)
-    elif page == "品牌分析":
-        show_brand_analysis(df)
+
 
 if __name__ == "__main__":
     main()
